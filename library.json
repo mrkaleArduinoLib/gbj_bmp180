@@ -1,7 +1,7 @@
 {
   "name": "gbjBMP180",
   "keywords": "sensors, temperature, preasure, twowire, 2-wire, i2c, iic, bus",
-  "description": "Library for the temperature and preasure sensors BMP180 communicating on two-wire (I2C) bus.",
+  "description": "Library for the temperature and barometric pressure sensors BMP180 communicating on two-wire (I2C) bus.",
   "repository": {
     "type": "git",
     "url": "https://github.com/mrkaleArduinoLib/gbj_bmp180.git"
