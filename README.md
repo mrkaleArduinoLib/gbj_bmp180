@@ -41,6 +41,8 @@ Library for the barometric sensors _BMP180_ with `two-wire` (also known as <abbr
 <a id="constants"></a>
 
 ## Constants
+* **GBJ\_BMP180\_TEST**: If this preprocessor macro is defined before including the library header file in a sketch, the library utilizes all calibration and temprature and pressure uncompensated values from the datasheet instead of real received values from the sensor. That mode serves for testing compensating algorithm implemented in the library.
+
 The library does not have specific error codes. Error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency) only. The result code and error codes can be tested in the operational code with its method `getLastResult()`, `isError()` or `isSuccess()`.
 
 
@@ -69,11 +71,13 @@ gbj_bmp180 sensor = gbj_bmp180(sensor.CLOCK_400KHZ)
 * [setOversamplingStandard()](#setOversampling)
 * [setOversamplingHigh()](#setOversampling)
 * [setOversamplingHighUltra()](#setOversampling)
+* [setOversampling()](#setOversampling)
 
 #### Getters
 * [getPressureSea()](#getPressureSea)
 * [getAltitude()](#getAltitude)
-* [getErrorPT()](#getErrorPT)
+* [getOversampling()](#getOversampling)
+* [getErrorValue()](#getErrorValue)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
 
@@ -172,7 +176,7 @@ The method measures temperature only.
 None
 
 #### Returns
-Temperature in centigrade or erroneous value returned by [getErrorPT()](#getErrorPT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Temperature in centigrade or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measurePressure()](#measurePressure)
@@ -221,23 +225,30 @@ setup()
 
 <a id="setOversampling"></a>
 
-## setOversamplingLow(), setOversamplingStandard(), setOversamplingHigh(), setOversamplingHighUltra()
+## setOversamplingLow(), setOversamplingStandard(), setOversamplingHigh(), setOversamplingHighUltra(), setOversampling()
 
 #### Description
 The particular method sets corresponding oversampling rate and related conversion time period for subsequent measurement according to the data sheet.
-* The oversampling rate is determined by the suffix in a method's name.
+* The oversampling rate is determined either by the suffix in a method's name or in the argument.
+* The method with input argument is suitable for setting an oversampling from previous obtained value by the corresponding getter.
 
 #### Syntax
     void setOversamplingLow()
     void setOversamplingStandard()
     void setOversamplingHigh()
     void setOversamplingHighUltra()
+    void setOversampling(uint8_t oss)
 
 #### Parameters
-None
+* **oss**: Oversampling set of pressure measurement rate. It is sanitized to the valid range.
+  * *Valid values*: non-negative integer 0 ~ 3
+  * *Default value*: none
 
 #### Returns
 None
+
+#### See also
+[getOversampling()](#getOversampling)
 
 [Back to interface](#interface)
 
@@ -302,15 +313,37 @@ Altitude in meters.
 [Back to interface](#interface)
 
 
-<a id="getErrorPT"></a>
+<a id="getOversampling"></a>
 
-## getErrorPT()
+## getOversampling()
+
+#### Description
+The method provides code of currently set oversampling rate for pressure measuring.
+
+#### Syntax
+    uint8_t getOversampling()
+
+#### Parameters
+None
+
+#### Returns
+Code of oversampling rate in the range 0 ~ 3.
+
+#### See also
+[setOversampling()](#setOversampling)
+
+[Back to interface](#interface)
+
+
+<a id="getErrorValue"></a>
+
+## getErrorValue()
 
 #### Description
 The method returns virtually wrong temperature or barometric pressure value at erroneous measurement usually at failure of two-wire bus.
 
 #### Syntax
-    float getErrorPT()
+    float getErrorValue()
 
 #### Parameters
 None

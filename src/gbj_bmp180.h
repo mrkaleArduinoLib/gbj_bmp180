@@ -95,7 +95,7 @@ public:
 #ifndef GBJ_BMP180_TEST
     if (isError(readTemperature()))
     {
-      return getErrorPT();
+      return getErrorValue();
     }
 #endif
     int32_t b5, t;
@@ -134,7 +134,7 @@ public:
     temperature = measureTemperature();
     if (isError())
     {
-      return getErrorPT();
+      return getErrorValue();
     }
     b5 = getB5();
     // Pressure measurement
@@ -143,7 +143,7 @@ public:
 #else
     if (isError(readPressure()))
     {
-      return getErrorPT();
+      return getErrorValue();
     }
 #endif
     b6 = b5 - 4000;
@@ -228,6 +228,11 @@ public:
   {
     status_.oss = Oversampling::OSS_HIGH_ULTRA;
   }
+  inline void setOversampling(uint8_t oss)
+  {
+    status_.oss = static_cast<Oversampling>(
+      constrain(oss, Oversampling::OSS_LOW, Oversampling::OSS_HIGH_ULTRA));
+  }
 
   // Getters
   inline float getPressureSea(float pressure, float altitude)
@@ -243,7 +248,8 @@ public:
     items = Params::PARAM_CALIB_CNT;
     return status_.calibration;
   }
-  inline float getErrorPT() { return -999; }
+  inline uint8_t getOversampling() { return static_cast<uint8_t>(status_.oss); }
+  inline float getErrorValue() { return -999; }
 
 private:
   enum Addresses
@@ -500,6 +506,7 @@ private:
   inline ResultCodes readTemperature()
   {
     uint16_t buffer16;
+    setBusRepeat();
     if (isError(busSend(Commands::CMD_REG_CONTROL,
                         ControlValues::CONTROL_VALUE_TEMPERATURE)))
     {
@@ -516,6 +523,7 @@ private:
     {
       return setLastResult(ResultCodes::ERROR_RCV_DATA);
     }
+    setBusStop();
     status_.temperature = buffer16;
     return getLastResult();
   }
@@ -530,8 +538,8 @@ private:
   {
     uint8_t reg = ControlValues::CONTROL_VALUE_PRESSURE +
                   (status_.oss << ControlBits::CONTROL_BIT_OSS);
-    uint8_t buffer8;
-    uint16_t buffer16;
+    uint8_t buffer[3];
+    setBusRepeat();
     if (isError(busSend(Commands::CMD_REG_CONTROL, reg)))
     {
       return setLastResult(ResultCodes::ERROR_REGISTER);
@@ -541,19 +549,17 @@ private:
       return getLastResult();
     }
     if (isError(busReceive(Commands::CMD_REG_OUT_MSB,
-                           reinterpret_cast<uint8_t *>(&buffer16),
-                           sizeof(buffer16),
-                           REVERSE)))
+                           buffer,
+                           sizeof(buffer) / sizeof(buffer[0]))))
     {
       return setLastResult(ResultCodes::ERROR_RCV_DATA);
     }
-    if (isError(
-          busReceive(Commands::CMD_REG_OUT_XLSB, &buffer8, sizeof(buffer8))))
-    {
-      return setLastResult(ResultCodes::ERROR_RCV_DATA);
-    }
-    status_.pressure = static_cast<uint32_t>(buffer16) << 8;
-    status_.pressure += buffer8;
+    setBusStop();
+    status_.pressure = buffer[0];
+    status_.pressure <<= 8;
+    status_.pressure |= buffer[1];
+    status_.pressure <<= 8;
+    status_.pressure |= buffer[2];
     status_.pressure >>= (8 - status_.oss);
     return getLastResult();
   }
