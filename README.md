@@ -65,6 +65,7 @@ gbj_bmp180 sensor = gbj_bmp180(sensor.CLOCK_400KHZ)
 * [reset()](#reset)
 * [measureTemperature()](#measureTemperature)
 * [measurePressure()](#measurePressure)
+* [measurePressureOnly()](#measurePressureOnly)
 
 #### Setters
 * [setOversamplingLow()](#setOversampling)
@@ -74,9 +75,11 @@ gbj_bmp180 sensor = gbj_bmp180(sensor.CLOCK_400KHZ)
 * [setOversampling()](#setOversampling)
 
 #### Getters
+* [getCalibration()](#getCalibration)
 * [getPressureSea()](#getPressureSea)
 * [getAltitude()](#getAltitude)
 * [getOversampling()](#getOversampling)
+* [txtOversampling()](#txtOversampling)
 * [getErrorValue()](#getErrorValue)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
@@ -223,6 +226,32 @@ setup()
 [Back to interface](#interface)
 
 
+<a id="measurePressureOnly"></a>
+
+## measurePressureOnly()
+
+#### Description
+The method measures barometric pressure only and skips a new temperature measurement.
+* It uses the latest previously calculated temperature compensation value.
+* The method is useful for frequent pressure sampling when temperature changes slowly.
+
+#### Syntax
+  float measurePressureOnly()
+
+#### Parameters
+None
+
+#### Returns
+Pressure in pascal or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+
+#### See also
+[measureTemperature()](#measureTemperature)
+
+[measurePressure()](#measurePressure)
+
+[Back to interface](#interface)
+
+
 <a id="setOversampling"></a>
 
 ## setOversamplingLow(), setOversamplingStandard(), setOversamplingHigh(), setOversamplingHighUltra(), setOversampling()
@@ -249,6 +278,43 @@ None
 
 #### See also
 [getOversampling()](#getOversampling)
+
+[Back to interface](#interface)
+
+
+<a id="getCalibration"></a>
+
+## getCalibration()
+
+#### Description
+The method returns a pointer to the calibration coefficients all converted to unsigned integers and number of those coefficients in its referencing argument.
+- The order of the coefficients in the array is reversed in comparison to the order stated in the data sheet. It is due to <abbr title='Most Significant Byte'>MSB</abbr> first in the <abbr title='Non-Volatile Memory'>NVM</abbr> (<abbr title='Electrically Erasable Programmable Read-Only Memory'>EEPROM</abbr>).
+- So, the order is: MD, MC, MB, B2, B1, AC6, AC5, AC4, AC3, AC2, AC1.
+
+#### Syntax
+    uint16_t *getCalibration(uint8_t &items)
+
+#### Parameters
+* **items**: Pointer (reference) to a variable receiving the number of calibration coefficients.
+  * *Valid values*: address space
+  * *Default value*: none
+
+#### Returns
+A pointer to the array of calibration coefficients.
+
+#### Example
+``` cpp
+byte calibCnt;
+unsigned int *calibTable;
+gbj_bmp180 sensor = gbj_bmp180();
+float tempValue, pressValue;
+setup()
+{
+  ...
+  calibTable = sensor.getCalibration(calibCnt);
+  ...
+}
+```
 
 [Back to interface](#interface)
 
@@ -330,6 +396,32 @@ None
 Code of oversampling rate in the range 0 ~ 3.
 
 #### See also
+[setOversampling()](#setOversampling)
+
+[Back to interface](#interface)
+
+
+<a id="txtOversampling"></a>
+
+## txtOversampling()
+
+#### Description
+The method provides a human-readable text label for provided oversampling mode code.
+
+#### Syntax
+    String txtOversampling(Oversamplings oss)
+
+#### Parameters
+* **oss**: Oversampling mode code.
+  * *Valid values*: 0 ~ 3 represented by `Oversamplings` enumeration constants
+  * *Default value*: none
+
+#### Returns
+Text label of oversampling mode.
+
+#### See also
+[getOversampling()](#getOversampling)
+
 [setOversampling()](#setOversampling)
 
 [Back to interface](#interface)

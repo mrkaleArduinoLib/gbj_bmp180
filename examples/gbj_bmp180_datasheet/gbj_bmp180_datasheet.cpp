@@ -1,21 +1,22 @@
-/*
-  NAME:
-  Testing calculation algorithms with datasheet constants.
-
-  DESCRIPTION:
-  - The preprocessor GBJ_BMP180_TEST macro should be defined before including
-  library header file.
-  - In testing mode no data reading is provided.
-
-  LICENSE:
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the MIT License (MIT).
-
-  CREDENTIALS:
-  Author: Libor Gabaj
-*/
+/**
+ * @name gbj_bmp180_datasheet
+ *
+ * @brief Testing BMP180's calculation algorithms with datasheet constants.
+ *
+ * @note The preprocessor GBJ_BMP180_TEST macro should be defined before
+ * including library header file.
+ * @note In testing mode no data reading is provided.
+ * @note In testing mode the library writes to serial port internally.
+ *
+ * @copyright This program is free software; you can redistribute it and/or
+ * modify it under the terms of the MIT License (MIT).
+ *
+ * @author Libor Gabaj
+ */
 #define GBJ_BMP180_TEST
 #include "gbj_bmp180.h"
+
+float tempValue, pressValue;
 
 // Software configuration
 gbj_bmp180 sensor = gbj_bmp180();
@@ -31,8 +32,8 @@ void errorHandler(String location)
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("---");
+  Serial.begin(115200);
+  Serial.println("===");
 
   // Initialize sensor
   if (sensor.isError(sensor.begin()))
@@ -45,15 +46,18 @@ void setup()
   Serial.println(sensor.getAddress(), HEX);
   Serial.println("---");
 
-  sensor.measureTemperature();
+  pressValue = sensor.measurePressure(tempValue);
   if (sensor.isError())
   {
-    errorHandler("Temperature");
+    errorHandler("Measure");
   }
-  sensor.measurePressure();
-  if (sensor.isError())
+  else
   {
-    errorHandler("Pressure");
+    Serial.println("Temperature (°C) / Pressure (hPa)");
+    Serial.print(tempValue, 1);
+    Serial.print(" / ");
+    Serial.println(pressValue / 100, 2);
+    Serial.println("===");
   }
 }
 

@@ -1,22 +1,21 @@
-/*
-  NAME:
-  Measurement the barometric preasure and recalculating it to sea level.
-
-  DESCRIPTION:
-  - Altitude input in meters.
-  - Sea level pressure output in hectopascals.
-
-  LICENSE:
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the MIT License (MIT).
-
-  CREDENTIALS:
-  Author: Libor Gabaj
-*/
+/**
+ * @name gbj_bmp180_sealevel
+ *
+ * @brief One-time barometric pressure measuring and recalculating it to sea
+ * level.
+ *
+ * @note Altitude input in meters.
+ * @note Sea level pressure output in hectopascals.
+ *
+ * @copyright This program is free software; you can redistribute it and/or
+ * modify it under the terms of the MIT License (MIT).
+ *
+ * @author Libor Gabaj
+ */
 #include "gbj_bmp180.h"
 
 const float ALTITUDE = 134.0; // Bratislava, Slovakia
-float tempValue, pressValue;
+float pressValue;
 
 // Software configuration
 gbj_bmp180 sensor = gbj_bmp180();
@@ -32,8 +31,8 @@ void errorHandler(String location)
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("---");
+  Serial.begin(115200);
+  Serial.println("===");
 
   // Initialize sensor
   if (sensor.isError(sensor.begin()))
@@ -46,20 +45,19 @@ void setup()
   Serial.println(sensor.getAddress(), HEX);
   Serial.println("---");
   // Measure
-  pressValue = sensor.measurePressure(tempValue);
+  pressValue = sensor.measurePressure();
   if (sensor.isError())
   {
     errorHandler("Measure");
   }
   else
   {
-    Serial.println("Temperature: " + String(tempValue, 1) + " °C");
     Serial.println("Altitude: " + String(ALTITUDE, 1) + " m");
     Serial.println("Pressure: " + String(pressValue / 100, 2) + " hPa");
     Serial.println(
       "PressureSea: " +
       String(sensor.getPressureSea(pressValue, ALTITUDE) / 100, 2) + " hPa");
-    Serial.println();
+    Serial.println("===");
   }
 }
 
