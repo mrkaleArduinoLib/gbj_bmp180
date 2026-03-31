@@ -1,12 +1,12 @@
 # gbjBMP180
 
-Library for the barometric sensors _BMP180_ with `two-wire` (also known as <abbr title='Inter-Integrated Circuit'>I2C</abbr>) bus interface.
+Library for the barometric sensors _BMP180_ via a `two-wire` (also known as <abbr title='Inter-Integrated Circuit'>I2C</abbr>) bus interface.
 
 * It is compatible with sensor `BMP085`.
-* Sensor address is `0x77` hardcoded and cannot be changed by any library method.
-* The library provides measured temperature in degrees of Celsius and air pressure in Pascal.
-* For conversion among various temperature unit scales and for calculating dew point temperature use library `gbjAppHelpers`.
-* The sensor has temperature resolution `0.1 °C` and pressure resolution `10 Pa` (0.01 hPa).
+* The sensor address, `0x77`, is hard-coded and cannot be changed by any library method.
+* The library provides measured temperature in degrees Celsius and air pressure in Pascal.
+* For conversion between various temperature units and for calculating dew point temperature use library `gbjAppHelpers`.
+* The sensor has temperature resolution of `0.1 °C` and pressure resolution `10 Pa` (0.01 hPa).
 
 
 #### Particle hardware configuration
@@ -41,13 +41,24 @@ Library for the barometric sensors _BMP180_ with `two-wire` (also known as <abbr
 <a id="constants"></a>
 
 ## Constants
-* **GBJ\_BMP180\_TEST**: If this preprocessor macro is defined before including the library header file in a sketch, the library utilizes all calibration and temprature and pressure uncompensated values from the datasheet instead of real received values from the sensor. That mode serves for testing compensating algorithm implemented in the library.
+* **GBJ\_BMP180\_TEST**: If this preprocessor macro is defined before including the library header file in a sketch, the library utilizes all calibration as well as temperature and pressure uncompensated values from the datasheet instead of real received values from the sensor. That mode serves for testing the compensation algorithm implemented in the library.
 
 The library does not have specific error codes. Error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency) only. The result code and error codes can be tested in the operational code with its method `getLastResult()`, `isError()` or `isSuccess()`.
 
 
-### Referencing constants
-In a sketch the constants can be referenced in following forms:
+## Custom enumerations
+
+<a id="Oversamplings"></a>
+
+#### Oversampling settings codes
+* **Oversamplings::ULTRA_LOW_POWER_1X**: Ultra low power mode.
+* **Oversamplings::STANDARD_RESOLUTION_2X**: Standard mode.
+* **Oversamplings::HIGH_RESOLUTION_4X**: High resolution mode.
+* **Oversamplings::ULTRA_HIGH_RESOLUTION_8X**: Ultra high resolution mode.
+
+
+### Referencing constants and enumerations
+In a sketch the constants can be referenced in the following forms:
 * **Static constant** in the form `gbj_bmp180::<enumeration>::<constant>` or shortly `gbj_bmp180::<constant>`, e.g., _gbj_bmp180::ClockSpeeds::CLOCK\_400KHZ_ or _gbj_bmp180::CLOCK\_400KHZ_.
 * **Instance constant** in the form `<object>.<constant>`, e.g., _sensor.CLOCK_400KHZ_.
 ```cpp
@@ -90,7 +101,7 @@ Other possible setters and getters are inherited from the parent library [gbjTwo
 ## gbj_bmp180()
 
 #### Description
-The library does not need special constructor and destructor, so that the inherited ones are good enough and there is no need to define them in the library, just use it with default or specific parameters as defined at constructor of parent library [gbjTwoWire](#dependency).
+The library does not need special constructor and destructor, so that the inherited ones are good enough and there is no need to define them in the library, just use it with default or specific parameters as defined at the constructor of the parent library [gbjTwoWire](#dependency).
 * Constructor sets parameters specific to the two-wire bus in general.
 * All the constructor parameters can be changed dynamically with corresponding setters later in a sketch.
 
@@ -102,16 +113,16 @@ The library does not need special constructor and destructor, so that the inheri
   * *Valid values*:ClockSpeeds::CLOCK\_100KHZ, ClockSpeeds::CLOCK\_400KHZ
   * *Default value*: ClockSpeeds::CLOCK\_100KHZ
 
-* **pinSDA**: Microcontroller's pin for serial data. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of methods utilizes this parameter for such as platforms for communication on the bus. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
+* **pinSDA**: Microcontroller's pin for serial data. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of the methods utilizes this parameter for such platforms for communication on the bus. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
   * *Valid values*: positive integer
   * *Default value*: 4 (GPIO4, D2)
 
-* **pinSCL**: Microcontroller's pin for serial clock. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of methods utilizes this parameter for such as platforms. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
+* **pinSCL**: Microcontroller's pin for serial clock. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of the methods utilize this parameter for such platforms. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
   * *Valid values*: positive integer
   * *Default value*: 5 (GPIO5, D1)
 
 #### Returns
-Object performing the sensor management.
+An object performing the sensor management.
 The constructor cannot return [a result or error code](#constants) directly, however, it stores them in the instance object.
 
 #### Example
@@ -170,7 +181,7 @@ Some of [result or error codes](#constants).
 #### Description
 The method measures temperature only.
 * The method is useful when barometric pressure is not needed.
-* The final temperature value is compensated with calibration data hardcoded in the sensor.
+* The final temperature value is compensated with calibration data hard-coded in the sensor.
 
 #### Syntax
     float measureTemperature()
@@ -179,7 +190,7 @@ The method measures temperature only.
 None
 
 #### Returns
-Temperature in centigrade or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Temperature in Celsius or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measurePressure()](#measurePressure)
@@ -192,20 +203,22 @@ Temperature in centigrade or erroneous value returned by [getErrorValue()](#getE
 ## measurePressure()
 
 #### Description
-The method measures barometric pressure alongside with temperature at once, because the temperature is needed for pressure compensation calculation.
-* The temperature is returned through referenced input parameter.
-* The final presure value is compensated with calibration data hardcoded in the sensor.
+The overloaded method measures barometric pressure alongside with temperature at once, because the temperature is needed for pressure compensation calculation.
+* The temperature is returned through referenced input parameter if present.
+* The final pressure value is compensated with calibration data hard-coded in the sensor.
 
 #### Syntax
+    float measurePressure()
     float measurePressure(float &temperature)
 
 #### Parameters
-* **temperature**: Referenced variable for placing a temperature value in centigrade.
+* **temperature**: Referenced variable for placing a temperature value in Celsius.
   * *Valid values*: sensor specific
   * *Default value*: none
 
 #### Returns
-Relative humidity truncated and compensated to range 0 - 100 °C or erroneous value returned by [getErrorRHT()](#getErrorRHT).
+Pressure in Pascal or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+If the method with referenced temperature parameter is called, the measured temperature is written in it.
 
 #### Example
 ``` cpp
@@ -236,13 +249,13 @@ The method measures barometric pressure only and skips a new temperature measure
 * The method is useful for frequent pressure sampling when temperature changes slowly.
 
 #### Syntax
-  float measurePressureOnly()
+    float measurePressureOnly()
 
 #### Parameters
 None
 
 #### Returns
-Pressure in pascal or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Pressure in Pascal or erroneous value returned by [getErrorValue()](#getErrorValue). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureTemperature()](#measureTemperature)
@@ -266,11 +279,11 @@ The particular method sets corresponding oversampling rate and related conversio
     void setOversamplingStandard()
     void setOversamplingHigh()
     void setOversamplingHighUltra()
-    void setOversampling(uint8_t oss)
+    void setOversampling(Oversamplings oss)
 
 #### Parameters
-* **oss**: Oversampling set of pressure measurement rate. It is sanitized to the valid range.
-  * *Valid values*: non-negative integer 0 ~ 3
+* **oss**: Oversampling setting of pressure measurement rate. It is limited by the data type [oversamplings](#Oversamplings) to the valid range.
+  * *Valid values*: Oversamplings::ULTRA_LOW_POWER_1X ~ Oversamplings::ULTRA_HIGH_RESOLUTION_8X
   * *Default value*: none
 
 #### Returns
@@ -304,10 +317,9 @@ A pointer to the array of calibration coefficients.
 
 #### Example
 ``` cpp
-byte calibCnt;
-unsigned int *calibTable;
+uint8_t calibCnt;
+uint16_t *calibTable;
 gbj_bmp180 sensor = gbj_bmp180();
-float tempValue, pressValue;
 setup()
 {
   ...
@@ -325,8 +337,8 @@ setup()
 
 #### Description
 The method calculates barometric pressure at sea level from provided pressure and altitude.
-* The input pressure is usually just measured one by the method [measurePressure()](#measurePressure), but the method calculates in general.
-* The measurement unit of the local pressure can be arbitrary. However the methods returns the sea level pressure in the same unit.
+* The input pressure is usually just measured value by the method [measurePressure()](#measurePressure), but the method can be used for general calculations.
+* The measurement unit of the local pressure can be arbitrary. The method returns the sea level pressure in the same unit.
 
 #### Syntax
     float getPressureSea(float pressure, float altitude)
@@ -355,7 +367,7 @@ Sea level barometric pressure.
 
 #### Description
 The method calculates local altitude from provided local barometric pressure and corresponding sea level pressure.
-* The input local pressure is usually just measured one by the method [measurePressure()](#measurePressure), but the method calculates in general.
+* The input local pressure is usually just measured value by the method [measurePressure()](#measurePressure), but the method can be used for general calculations.
 * Both input pressures should be in the same measurement unit. However that unit can be arbitrary, usually Pascal or hectoPascal.
 
 #### Syntax
@@ -366,7 +378,7 @@ The method calculates local altitude from provided local barometric pressure and
   * *Valid values*: decimal number
   * *Default value*: none
 
-* **pressureSea**: Sea level barometric pressure in arbitrary measurement unit, but the same as the first argument has.
+* **pressureSea**: Sea level barometric pressure in arbitrary but the same as the first argument.
   * *Valid values*: decimal number
   * *Default value*: none
 
@@ -432,7 +444,7 @@ Text label of oversampling mode.
 ## getErrorValue()
 
 #### Description
-The method returns virtually wrong temperature or barometric pressure value at erroneous measurement usually at failure of two-wire bus.
+The method returns a dummy value of temperature or barometric pressure during an erroneous measurement usually in the event of a failure of the two-wire bus.
 
 #### Syntax
     float getErrorValue()

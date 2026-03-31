@@ -28,6 +28,9 @@
 class gbj_bmp180 : public gbj_twowire
 {
 public:
+  /**
+   * @brief Oversampling settings for pressure measurement.
+   */
   enum class Oversamplings : uint8_t
   {
     ULTRA_LOW_POWER_1X = B00,
@@ -38,7 +41,7 @@ public:
   gbj_bmp180(ClockSpeeds clockSpeed = ClockSpeeds::CLOCK_100KHZ,
              uint8_t pinSDA = 4,
              uint8_t pinSCL = 5)
-    : gbj_twowire(clockSpeed, pinSDA, pinSCL){};
+    : gbj_twowire(clockSpeed, pinSDA, pinSCL) {};
 
   /**
    * @brief Initialize sensor.
@@ -202,8 +205,8 @@ public:
 
   /**
    * @brief Set oversampling mode.
-   * @details Constrains the oversampling value to valid range. Higher oversampling
-   * values provide higher resolution but longer measurement times.
+   * @details Constrains the oversampling value to valid range. Higher
+   * oversampling values provide higher resolution but longer measurement times.
    * @param oss Oversampling setting value.
    */
   inline void setOversampling(Oversamplings oss)
